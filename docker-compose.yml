@@ -1,0 +1,51 @@
+services:
+  fastapi-scraper:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      chrome:
+        condition: service_healthy
+    environment:
+      USE_SELENIUM_REMOTE: "true"
+    networks:
+      - app_network
+
+  chrome:
+    image: selenium/node-chrome:4.26.0-20241101
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "http://selenium-hub:4444/status"]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+
+  selenium-hub:
+    image: selenium/hub:4.26.0-20241101
+    container_name: selenium-hub
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
+    environment:
+    - GRID_MAX_SESSION=5
+    - GRID_SESSION_TIMEOUT=0 
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "http://localhost:4444/status"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+
+networks:
+  app_network:
