@@ -1,4 +1,5 @@
 import os
+import validators
 from fastapi import HTTPException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -7,14 +8,18 @@ from app.config.scraping_config import SCRAPING_CONFIG
 
 
 class SeleniumManager:
-    def __init__(self) -> None:
-        self._driver: webdriver = self._initialize_chrome_driver()
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(SeleniumManager, cls).__new__(cls, *args, **kwargs)
+            cls._instance._initialize_chrome_driver()
+        return cls._instance
 
-    def _initialize_chrome_driver(self) -> webdriver:
+    def _initialize_chrome_driver(self):
         chrome_options = Options()
         chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
 
         if os.getenv("USE_SELENIUM_REMOTE", "false").lower() == "true":
@@ -27,6 +32,8 @@ class SeleniumManager:
 
     def get_html_struct_page(self, url: str) -> str:
         try:
+            if not validators.url(url):
+                url ="https://" + url
             self.driver.get(url)
             self.driver.maximize_window()
 

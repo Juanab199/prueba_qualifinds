@@ -13,6 +13,7 @@ services:
 
   chrome:
     image: selenium/node-chrome:4.26.0-20241101
+    shm_size: 2gb
     depends_on:
       - selenium-hub
     environment:
@@ -35,9 +36,6 @@ services:
       - "4442:4442"
       - "4443:4443"
       - "4444:4444"
-    environment:
-    - GRID_MAX_SESSION=5
-    - GRID_SESSION_TIMEOUT=0 
     networks:
       - app_network
     healthcheck:

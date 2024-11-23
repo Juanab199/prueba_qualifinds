@@ -12,7 +12,7 @@ class InpuntData(BaseModel):
     def if_url_is_none(cls, url: str):
         url_regex = re.compile(r'^(https?://)?(www\.)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(/[\w\-._~:/?#[\]@!$&\'()*+,;%=]*)?$')
         if not url_regex.match(url):
-            raise ValueError('Invalid URL format')
+            raise ValueError('Invalid URL format, the format is "https://example.com"')
         return url
     
     

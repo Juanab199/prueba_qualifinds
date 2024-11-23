@@ -9,7 +9,7 @@ Se implementa un docker-compose para levantar el servicio en fast api, el servic
 ### Software requerido
 
 - Python >= 3.10
-- Docker
+- Docker >= 2.10.9
 - docker-compose (v2)
 
 ### Configuración de entorno de desarrollo
@@ -183,7 +183,7 @@ En Docker se utliza Gunicorn
 
 Dada la limitación de tiempo se decide por esa estructura para el proyecto pero hay puntos en el desarrollo que se pueden mejorar:
 
-* Implementación de un singleton para evitar la instanciación de la clase SeleniumManager garantizando que solo exista una instancia activa en todo momento. Esto evitará problemas de consumo innecesario de recursos y conflictos al manejar múltiples instancias en paralelo. Se opta por esta implementación por el impedimento de la imagen de docker de selemium, ya que esta imagen cierra automaticamente el driver después de un tiempo y no permite consultar adecuadamente la pagina despues de algunos minutos. Con más tiempo se podría revisar más activamente la documentación para sortear este problema, solo mantiene el driver por unos minutos. Se agrega la propuesta del Singleton más abajo.
+* Implementación de un singleton para evitar la instanciación de la clase SeleniumManager garantizando que solo exista una instancia activa en todo momento. Esto evitará problemas de consumo innecesario de recursos y conflictos al manejar múltiples instancias en paralelo. Se opta por esta implementación por el impedimento de la imagen de docker de selemium, ya que esta imagen cierra automaticamente el driver después de un tiempo y no permite consultar adecuadamente la pagina despues de algunos minutos. Con más tiempo se podría revisar más activamente la documentación para sortear este problema.
 
 * Agregar logs en la ejecución del código para que sean más visuales las etapas por las que pasa el servicio: Implementar un sistema de logging estructurado, diferenciando niveles como DEBUG, INFO, WARNING y ERROR. Incluir timestamps y etiquetas para identificar fácilmente las etapas del flujo de ejecución, lo que facilitará el monitoreo y la resolución de problemas.
 
@@ -194,31 +194,3 @@ Dada la limitación de tiempo se decide por esa estructura para el proyecto pero
 * Optimización del tiempo de espera: Configurar tiempos de espera explícitos en Selenium, diferenciando entre cargas completas de página y elementos específicos. Esto permitirá un manejo más eficiente de recursos y reducirá tiempos de ejecución innecesarios.
 
 * Agregar más pruebas automatizadas para tener todo el código cubierto.
-
-Ejemplo de la propuesta del singleton:  
-
-  ```python
- class SeleniumManager:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(SeleniumManager, cls).__new__(cls, *args, **kwargs)
-            cls._instance._initialize_chrome_driver()
-        return cls._instance
-
-    def _initialize_chrome_driver(self):
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-
-        if os.getenv("USE_SELENIUM_REMOTE", "false").lower() == "true":
-            self.driver = webdriver.Remote( 
-                command_executor="http://selenium:4444/wd/hub",
-                options=chrome_options,
-            )
-        else:
-            self.driver = webdriver.Chrome(options=chrome_options)
-    ```
